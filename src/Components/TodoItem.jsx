@@ -33,8 +33,9 @@ const TodoItem = ({ item, onDelete, onToggle }) => {
 
               <div className="item-content-date">
                 <div className="item-content-date-wrapper">
-                  <p className={item.completed ? "completed" : ""}>{customFormat(new Date(item.creationDate))}</p>
-                  <p className={item.completed ? "completed" : ""}>{Math.floor((Date.now() - new Date(item.creationDate))/1000/60/60/24 )+ " дней"}</p>
+                  <p >{customFormat(new Date(item.creationDate),'DD MM YYYY')}</p>
+                  <p >{item.countDays + " дней"}</p>
+                  <p >{item.completedDate? customFormat(new Date(item.completedDate),'DD MM YYYY'): ""}</p>
                 </div>
 
               </div>

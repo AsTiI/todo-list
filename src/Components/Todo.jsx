@@ -14,19 +14,35 @@ const Todo = () =>{
 
     useEffect(()=>{
         let stored = JSON.parse(localStorage.getItem("todo"));
-        setStore(stored);
+        
         if(stored){
+            
+            stored = stored.map((task)=>{
+                if(!task.completed && formatDate(new Date(task.creationDate),'DD MM YYYY') < formatDate(new Date(Date()), 'DD MM YYYY')){
+                    return {
+                            ...task, 
+                            countDays: Math.floor((Date.now() - new Date(task.creationDate))/1000/60/60/24 )
+                        } 
+                } else {
+                    return task
+                }
+            })
+            setStore(stored);
+
+            updateLocalStorage(stored);
+
             let filteredStored = stored.filter(
-                (el)=> formatDate(new Date(el.creationDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
+                (el)=> (!el.completed && formatDate(new Date(el.creationDate),'DD MM YYYY') < formatDate(new Date(Date()), 'DD MM YYYY') 
+                        && formatDate(new Date(Date()), 'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
+                        || (el.completed && formatDate(new Date(el.completedDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
+                        || (formatDate(new Date(el.creationDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY')
+                        && formatDate(new Date(Date()),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY')))
             setTasks(filteredStored);
         }
     },[selectedDate])
 
     const updateLocalStorage = (updatedTasks) => {
         localStorage.setItem("todo", JSON.stringify(updatedTasks));
-        let filteredStored = updatedTasks.filter(
-            (el)=> formatDate(new Date(el.creationDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
-        setTasks(filteredStored);  
     }
 
     const addTodo = () => {
@@ -34,12 +50,14 @@ const Todo = () =>{
             const newTask = {
                 id: Date.now(), 
                 creationDate: selectedDate, 
+                completedDate: "",
                 name: todo.name, 
                 text: todo.text, 
                 countDays: 0, 
                 completed: false
             };
             const updatedTasks = [ ...store, newTask ];
+            setTasks([...tasks, newTask]);
             updateLocalStorage(updatedTasks);
             setStore(updatedTasks)
             setTodo({creationDate: 0, name: '', text: '', countDays: 0});
@@ -50,14 +68,18 @@ const Todo = () =>{
 
     const deleteTodo = (id) => {
         const updatedTasks = store.filter((item)=> item.id !== id );
+        setTasks(tasks.filter((item)=> item.id !== id ))
         updateLocalStorage(updatedTasks);
         setStore(updatedTasks)
     }
     
     const toggleTodo = (id) => {
         const updatedTasks = store.map((item) =>
-          item.id === id ? { ...item, completed: !item.completed } : item
+          item.id === id ? { ...item, completed: !item.completed, completedDate: !item.completed? selectedDate : "" } : item
         );
+        setTasks(tasks.map((item) =>
+        item.id === id ? { ...item, completed: !item.completed, completedDate: !item.completed? selectedDate : "" } : item
+      ))
         updateLocalStorage(updatedTasks);
         setStore(updatedTasks)
       };
@@ -74,13 +96,13 @@ const Todo = () =>{
                         type="text" 
                         className="input-name"
                         value={todo.name}
-                        onChange={(e) => setTodo({creationDate: selectedDate, name: e.target.value, text: todo.text, countDays: 0})}
+                        onChange={(e) => setTodo({creationDate: selectedDate, completedDate: '', name: e.target.value, text: todo.text, countDays: 0})}
                     />
                     <input
                         type="text"
                         className="input-text"
                         value={todo.text}
-                        onChange={(e) => setTodo({creationDate: selectedDate, name: todo.name, text: e.target.value, countDays: 0})}
+                        onChange={(e) => setTodo({creationDate: selectedDate, completedDate: '', name: todo.name, text: e.target.value, countDays: 0})}
                     />
                 </div>
                 
