@@ -36,7 +36,9 @@ const Todo = () =>{
                         && formatDate(new Date(Date()), 'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
                         || (el.completed && formatDate(new Date(el.completedDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
                         || (formatDate(new Date(el.creationDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY')
-                        && formatDate(new Date(Date()),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY')))
+                        && formatDate(new Date(Date()),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY'))
+                        || (formatDate(new Date(Date()),'DD MM YYYY') < formatDate(new Date(selectedDate), 'DD MM YYYY')
+                        && formatDate(new Date(el.creationDate),'DD MM YYYY') === formatDate(new Date(selectedDate), 'DD MM YYYY')))
             setTasks(filteredStored);
         }
     },[selectedDate])
