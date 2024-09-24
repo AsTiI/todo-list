@@ -6,7 +6,38 @@ import '../static/css/global.css'
 import '../css/todo.css'
 
 
+import {
+    closestCenter,
+    DndContext, 
+    DragOverlay,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+  } from '@dnd-kit/core';
+  import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+  } from '@dnd-kit/sortable';
+  
+  import {SortableItem} from './dndkit/SortableItem';
+  import Item from './dndkit/Item';
+
+
+
 const Todo = () =>{
+    const [activeId, setActiveId] = useState(null);
+    const [items, setItems] = useState(['1', '2', '3']);
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+        coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+
     const [store, setStore] = useState([]);
     const [selectedDate, setSelectedDay] = useState(new Date());
     const [tasks, setTasks] = useState([]);
@@ -90,6 +121,23 @@ const Todo = () =>{
     <div class='todo-container'>
         <Calendar selectedDate={selectedDate} selectDate={(date) => setSelectedDay(date)} />
         
+        <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            >
+            <SortableContext 
+                items={items}
+                strategy={verticalListSortingStrategy}
+            >
+                {items.map(id => <SortableItem key={id} id={id}/>)}
+            </SortableContext>
+            <DragOverlay>
+                {activeId ? <Item id={activeId} /> : null}
+            </DragOverlay>
+        </DndContext>
+
         <div className='date__container'>{formatDate(selectedDate, 'DDD DD MMM YYYY')}</div>
         <div className="add-todo">
             <div className="add-todo-wrapper">
@@ -130,7 +178,28 @@ const Todo = () =>{
         </div>
 
     </div>
-  )
+  );
+
+  function handleDragStart(event) {
+    const {active} = event;
+    
+    setActiveId(active.id);
+  }
+  
+  function handleDragEnd(event) {
+    const {active, over} = event;
+    
+    if (active.id !== over.id) {
+      setItems((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+    
+    setActiveId(null);
+  }
 }
 
 export default Todo
